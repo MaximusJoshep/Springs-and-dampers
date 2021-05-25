@@ -1,6 +1,9 @@
 # Prerequisites
 *.d
 
+#CMake for QtCreator
+CMakeLists.txt
+CMakeLists.txt.user
 # Compiled Object files
 *.slo
 *.lo
