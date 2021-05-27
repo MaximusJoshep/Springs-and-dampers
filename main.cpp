@@ -10,9 +10,24 @@
 #include "model.h"
 #include "objfile.h"
 
+
+void CheckSphereCollition(Vector3& position)
+{
+    float sphereRadius = 2;
+    float sLength = position.norm();
+    if( sLength < sphereRadius*sphereRadius)
+    {
+        Vector3 normPos = position.normalize();
+        position.setX(normPos.getX()*sphereRadius);
+        position.setY(normPos.getY()*sphereRadius);
+        position.setZ(normPos.getZ()*sphereRadius);
+    }
+}
+
 int main()
 {
-    ObjFile obj("/home/michael/icoesfera.obj");
+    std::string archivo = "/home/michael/icoesfera.obj";  //icoesfera.obj | entrada.obj
+    ObjFile obj(archivo);
 
     int width = 600;
     int height = 600;
@@ -39,26 +54,24 @@ int main()
         return -1;
     }
 
-    std::vector<float> objVertex;
-
+    //Setting up the model----------------------------
     std::vector<int> indexesVector = obj.getIndexes();
-    std::vector<float> vertexVector = obj.getVertex();
-
-    std::cout<<indexesVector.size()<<std::endl;
-    std::cout<<vertexVector.size()<<std::endl;
-
-    for(std::size_t i=0 ; i<indexesVector.size() ; i++)
-    {
-        objVertex.emplace_back(vertexVector[indexesVector[i]-1]);
-    }
-
-    for(int i=0 ; i<objVertex.size() ; i++)
-        std::cout<<objVertex[i]<<std::endl;
+    std::vector<Vertex> vertexVector = obj.getVertex();
 
     Model cube;
+    cube.setVertex(vertexVector);
+    cube.setIndex(indexesVector);
+    cube.translateModel(0,2,0);
+    cube.updateModel();
 
-    cube.setVertex(objVertex);
+    Vector3 pos = Vector3(
+                cube.getVertex()[0].getPosition().getX(),
+                cube.getVertex()[0].getPosition().getY(),
+                cube.getVertex()[0].getPosition().getZ()
+            );
 
+
+    //Setting up model on OpenGL---------------------
     GLuint vbo;
     cube.init(vbo);
 
@@ -104,7 +117,6 @@ int main()
     float cameraY = 0.f;
     float cameraZ = 7.f;
 
-    //Octahedron position
     float lockX = 0.0;
     float lockY = 0.0;
     float lockZ = 0.0;
@@ -120,7 +132,7 @@ int main()
         glClear( GL_COLOR_BUFFER_BIT);
         glClearColor(0.0f, 0.03f, 0.05f, 0.0f);
 
-        //------------------------CAMERA-------------------
+        //------------------------CAMERA--------------------------
         //Get variables
         mvLoc = glGetUniformLocation(shader_programme , "mvMatrix");
         projLoc = glGetUniformLocation(shader_programme , "projMatrix");
@@ -135,12 +147,14 @@ int main()
         //Save changes
         glUniformMatrix4fv(mvLoc , 1 , GL_FALSE, glm::value_ptr(mvMat));
         glUniformMatrix4fv(projLoc , 1 , GL_FALSE, glm::value_ptr(pMat));
-        //-----------------------END CAMERA----------------
+        //-----------------------END CAMERA------------------------
 
 
-        //-----------------------Draw Cube-----------------------
+
+        //-----------------------Draw Model------------------------
         cube.show(vbo);
-        //---------------------End Draw Cube----------------------
+        cube.getVertex()[0].setPosition(pos);           //Static vertex[0]
+        //---------------------End Draw Model----------------------
 
         glfwPollEvents();
         glfwSwapBuffers(window);

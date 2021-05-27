@@ -3,27 +3,36 @@
 
 #include <vector>
 #include <GL/glew.h>
+#include <iostream>
+#include "vector3.h"
+#include "vertex.h"
 
 class Model
 {
-    std::vector<float> position = {0,0,0};
-    std::vector<float> velocity = {0,0,0};
-    std::vector<float> aceleration = {0,0,0};
-
-    std::vector<float> vertex;
+    std::vector<Vertex> vertex;
+    std::vector<float> vertexToShow;
+    std::vector<int> index;
+    std::vector<float> distances;
 public:
 
     Model();
 
-    void setVertex(std::vector<float> vertexList);
-    const std::vector<float> getVertex();
+    //Set and Get Vertex of model
+    void setVertex(std::vector<Vertex> vertexList);
+    std::vector<Vertex> getVertex();
+    //Set and get Index of model
+    void setIndex(std::vector<int> indexList);
+    const std::vector<int> getIndex();
+
+    //Function to build model with array of floats
+    void updateModel();
+
+    //Translate
+    void translateModel(float x,float y,float z);
+
+    //OpenGL init and show
     void init(GLuint& vbo);
     void show(GLuint& vbo);
-    void setPosition(std::vector<float> vector);
-    void setVelocity(std::vector<float> vector);
-    void addForce(std::vector<float> vector);
-    std::vector<float> getPosition();
-    std::vector<float> getVelocity();
 };
 
 #endif // OBJECT_H

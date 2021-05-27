@@ -3,7 +3,7 @@
 ObjFile::ObjFile(std::string file)
 {
     std::ifstream fileStream{file , std::ios_base::in};
-    std::vector<float> vertexInput;
+    std::vector<Vertex> vertexInput;
     std::vector<float> textureCoordinatesInput;
     std::vector<float> normalsInput;
     std::vector<int> indexesInput;
@@ -23,12 +23,16 @@ ObjFile::ObjFile(std::string file)
 
             if(firstSymbol == "v")
             {
-                float vertexPosition{};
-                for(std::size_t i=0 ; i<3 ; i++)
-                {
-                    lineStream >> vertexPosition;
-                    vertexInput.emplace_back(vertexPosition);
-                }
+                float vertexPositionX{};
+                float vertexPositionY{};
+                float vertexPositionZ{};
+
+                lineStream >> vertexPositionX;
+                lineStream >> vertexPositionY;
+                lineStream >> vertexPositionZ;
+
+                vertexInput.emplace_back(Vertex(vertexPositionX,vertexPositionY,vertexPositionZ));
+
             }
             else if(firstSymbol == "vt")
             {
@@ -71,7 +75,7 @@ ObjFile::ObjFile(std::string file)
     fileStream.close();
 }
 
-const std::vector<float> ObjFile::getVertex()
+const std::vector<Vertex> ObjFile::getVertex()
 {
     return this->vertex;
 }
