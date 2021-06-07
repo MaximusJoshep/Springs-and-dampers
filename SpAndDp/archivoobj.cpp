@@ -84,16 +84,9 @@ ArchivoObj::ArchivoObj(std::string file)
 
 void ArchivoObj::springsAndDampers()
 {
-    //Distancias de reposo
-    std::vector<float> distancias;
-    for(std::size_t i=0 ; i<aristas.size() ; i++)
-    {
-        util::Vector3 dif = todosVertices[aristas[i][0]].posicion-todosVertices[aristas[i][1]].posicion;
-        distancias.emplace_back(dif.modulo());
-    }
-    float k = 120; //Constante spring
-    float d = 0.001; //Constante damper
 
+    float k = 15; //Constante spring
+    float d = 0.99999; //Constante damper
     for(std::size_t i=0 ; i<aristas.size() ; i++)
     {
         Vertice v1 = todosVertices[aristas[i][0]];
@@ -102,20 +95,32 @@ void ArchivoObj::springsAndDampers()
         util::Vector3 r = v2.posicion - v1.posicion;     //Distancia de resposo
         util::Vector3 vr = v2.velocidad - v1.velocidad;    //Diferencia de velocidades
         float dl = r.modulo() - distancias[i];                   //Diferencia de longitud = (L-r)
+
         float f = k * dl;
-        util::Vector3 llr = r/(r.modulo());                         // L/L
-        util::Vector3 F = (r*f) + ((vr*llr)*(d))*(llr);    //F = (r*f) + (d *(vr.*r)).*r;
+        util::Vector3 rNorm = r.normalizar();       // L/L
+
+        util::Vector3 F = (r*f) + ((vr*rNorm*d)*rNorm);    //F = (r*f) + (d *(vr.*r)).*r;
 
         todosVertices[aristas[i][0]].agregarFuerza(F);
-        todosVertices[aristas[i][1]].agregarFuerza((F*-1));
+        todosVertices[aristas[i][1]].agregarFuerza(F*-1);
     }
 }
 
 void ArchivoObj::iniciar(GLuint& vbo)
 {
-    util::Vector3 gravedad(0,-0.98,0);
+    util::Vector3 gravedad(0,-9.8,0);
     for(std::size_t i=0; i<todosVertices.size() ; i++)
         todosVertices[i].agregarFuerza(gravedad);
+
+    //Distancias de reposo
+    distancias = std::vector<float>(aristas.size(),0);
+    for(std::size_t i=0 ; i<aristas.size() ; i++)
+    {
+        Vertice v1 = todosVertices[aristas[i][0]];
+        Vertice v2 = todosVertices[aristas[i][1]];
+        util::Vector3 dif = v2.posicion-v1.posicion;
+        distancias[i] = dif.modulo();
+    }
 
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -125,6 +130,7 @@ void ArchivoObj::iniciar(GLuint& vbo)
 void ArchivoObj::mostrar(GLuint& vbo)
 {
     springsAndDampers();
+
     vertices.clear();
     for(std::size_t i=0 ; i<indices.size() ; i++)
     {
@@ -144,5 +150,15 @@ void ArchivoObj::mostrar(GLuint& vbo)
     glVertexAttribPointer(0 , 3 , GL_FLOAT , GL_FALSE, 0, nullptr);
 
     glDrawArrays(GL_TRIANGLES, 0, this->vertices.size()/3);
+}
+
+void ArchivoObj::trasladar(float x, float y, float z)
+{
+    util::Vector3 mover(x,y,z);
+    for(std::size_t i=0 ; i<todosVertices.size() ; i++)
+    {
+        todosVertices[i].posicion = todosVertices[i].posicion + mover;
+
+    }
 }
 

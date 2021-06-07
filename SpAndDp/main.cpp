@@ -10,10 +10,27 @@
 #include "archivoobj.h"
 
 
+void CheckSphereCollition(Vertice& vertice)
+{
+    float sphereRadius = 1;
+    float sLength = vertice.posicion.modulo();
+    if( sLength < sphereRadius*sphereRadius)
+    {
+        util::Vector3 np = vertice.posicion.normalizar();
+        vertice.posicion = np*sphereRadius*1.000001;
+        vertice.velocidad = np;
+        vertice.agregarFuerza(np);
+    }
+}
+
 int main()
 {
-    std::string direccion = "/home/michael/entrada.obj";
-    ArchivoObj ao(direccion);
+    //Se usaron los modelos: icoesfera.obj y entrada.obj
+    std::string direccion1 = "/home/michael/icoesfera.obj";
+    std::string direccion2 = "/home/michael/entrada.obj";
+    ArchivoObj ao(direccion1);
+    ArchivoObj bo(direccion2);
+
     int width = 600;
     int height = 600;
     GLFWwindow* window;
@@ -37,12 +54,14 @@ int main()
         return -1;
     }
     //Setting up model on OpenGL---------------------
-    GLuint vbo;
+    GLuint vbo[2];
 
 
+    bo.iniciar(vbo[0]);
+    bo.trasladar(-1,3,0);
 
-
-    ao.iniciar(vbo);
+    ao.iniciar(vbo[1]);
+    ao.trasladar(1,3,0);
 
     GLuint vao = 0;
     glGenVertexArrays(1, &vao);
@@ -64,7 +83,7 @@ int main()
             "uniform mat4 projMatrix;"   //Proyeccion
             "out vec4 frag_color;"
             "void main() {"
-            "  frag_color = vec4(0.2, .9, 0.2, 1.0);"
+            "  frag_color = vec4(0.1, .9, 0.3, 1.0);"
             "}";
 
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
@@ -118,8 +137,16 @@ int main()
         glUniformMatrix4fv(projLoc , 1 , GL_FALSE, glm::value_ptr(pMat));
         //-----------------------FIN CAMARA------------------------
 
-
-        ao.mostrar(vbo);
+        for(std::size_t i=0 ; i<ao.todosVertices.size() ; i++)
+        {
+            CheckSphereCollition(ao.todosVertices[i]);
+        }
+        for(std::size_t i=0 ; i<bo.todosVertices.size() ; i++)
+        {
+            CheckSphereCollition(bo.todosVertices[i]);
+        }
+        ao.mostrar(vbo[0]);
+        bo.mostrar(vbo[1]);
 
         glfwPollEvents();
         glfwSwapBuffers(window);

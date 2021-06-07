@@ -23,10 +23,12 @@ public:
     std::vector<float> coordenadasTextura;
     std::vector<float> normales;
     std::vector<int> indices;
+    std::vector<float> distancias;
 
     void iniciar(GLuint& vbo);
     void mostrar(GLuint& vbo);
     void springsAndDampers();
+    void trasladar(float x, float y, float z);
 
 };
 
